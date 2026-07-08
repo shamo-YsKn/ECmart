@@ -144,13 +144,13 @@ function Head({
   const metalDark = "#8b9096"
 
   return (
-    <g>
-      {/* アンテナ（頭のボルト） */}
-      <rect x={94} y={30} width={12} height={16} rx={2} fill={metalDark} />
-      <circle cx={100} cy={26} r={9} fill={accentColor} stroke={darken(accentColor, 0.2)} strokeWidth={2} />
+   <g>
+      {/* アンテナ（頭のボルトを少し細かく） */}
+      <rect x={94} y={20} width={12} height={10} rx={2} fill={metalDark} />
+      <circle cx={100} cy={20} r={4} fill={metal} stroke={metalDark} strokeWidth={2} />
 
       {base === "volta" ? (
-        // 六角ボルトの頭
+        // ボルタ：六角ボルトの頭
         <polygon
           points="100,44 143,68 143,116 100,140 57,116 57,68"
           fill={metal}
@@ -159,32 +159,31 @@ function Head({
           strokeLinejoin="round"
         />
       ) : (
-        // 皿ねじ・ナットの丸い頭
+        // ナッティ：皿ねじの丸い頭
         <>
           <circle cx={100} cy={92} r={46} fill={metal} stroke={metalDark} strokeWidth={3} />
-          {/* ねじの溝 */}
-          <rect x={64} y={89} width={72} height={6} rx={3} fill={metalDark} opacity={0.55} />
+          {/* ナッティ特有の十字の溝（画像より） */}
+          <line x1={70} y1={62} x2={130} y2={122} stroke={metalDark} strokeWidth={6} strokeLinecap="round" />
+          <line x1={130} y1={62} x2={70} y2={122} stroke={metalDark} strokeWidth={6} strokeLinecap="round" />
         </>
       )}
 
-      {showFace ? (
+      {showFace && (
         <g>
-          {/* ほっぺ */}
-          <circle cx={78} cy={104} r={7} fill={accentColor} opacity={0.5} />
-          <circle cx={122} cy={104} r={7} fill={accentColor} opacity={0.5} />
-          {/* 目 */}
-          <circle cx={84} cy={90} r={7.5} fill="#3a3f45" />
-          <circle cx={116} cy={90} r={7.5} fill="#3a3f45" />
-          <circle cx={86} cy={87} r={2.5} fill="#fff" />
-          <circle cx={118} cy={87} r={2.5} fill="#fff" />
-          {/* 口 */}
-          <path d="M90 106 Q100 116 110 106" fill="none" stroke="#3a3f45" strokeWidth={3} strokeLinecap="round" />
-        </g>
-      ) : (
-        // 背面：ねじ穴のディテール
-        <g stroke={metalDark} strokeWidth={3} strokeLinecap="round">
-          <line x1={90} y1={86} x2={110} y2={98} />
-          <line x1={110} y1={86} x2={90} y2={98} />
+          {/* ほっぺ（画像に合わせて少し位置を調整） */}
+          <circle cx={75} cy={100} r={6} fill={accentColor} opacity={0.4} />
+          <circle cx={125} cy={100} r={6} fill={accentColor} opacity={0.4} />
+          
+          {/* 目（皿ネジの十字溝を表現するため、中心に小さな点を追加） */}
+          <circle cx={84} cy={90} r={8} fill="#3a3f45" />
+          <circle cx={116} cy={90} r={8} fill="#3a3f45" />
+          <line x1={80} y1={90} x2={88} y2={90} stroke="#555" strokeWidth={2} />
+          <line x1={84} y1={86} x2={84} y2={94} stroke="#555" strokeWidth={2} />
+          <line x1={112} y1={90} x2={120} y2={90} stroke="#555" strokeWidth={2} />
+          <line x1={116} y1={86} x2={116} y2={94} stroke="#555" strokeWidth={2} />
+
+          {/* 口（ワイヤーを曲げたようなライン） */}
+          <path d="M90 110 Q100 120 110 110" fill="none" stroke="#3a3f45" strokeWidth={4} strokeLinecap="round" />
         </g>
       )}
     </g>
