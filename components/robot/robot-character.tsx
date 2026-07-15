@@ -1,192 +1,406 @@
 "use client"
 
+import { useId } from "react"
 import type { RobotConfig, RobotItem, RobotPose } from "@/lib/types"
 
-/** ポーズごとの腕の角度（度）。0 = 真下、正の値で前方向へ */
-const POSE_ANGLES: Record<RobotPose, { left: number; right: number }> = {
-  stand: { left: 18, right: -18 },
-  wave: { left: 20, right: -150 },
-  cheer: { left: 150, right: -150 },
-  point: { left: 15, right: -95 },
+/**
+ * PowerPointで作成されたボルタ／ナッティの形を基準にしたポーズ。
+ * cheer が元図とほぼ同じ「両腕を斜め上へ広げた姿勢」です。
+ */
+const POSE_ROTATIONS: Record<RobotPose, { left: number; right: number }> = {
+  stand: { left: -94, right: 94 },
+  wave: { left: -94, right: -15 },
+  cheer: { left: 0, right: 0 },
+  point: { left: -94, right: 33 },
 }
 
-function darken(hex: string, amount = 0.16) {
-  const c = hex.replace("#", "")
-  const num = Number.parseInt(
-    c.length === 3
-      ? c
-          .split("")
-          .map((x) => x + x)
-          .join("")
-      : c,
-    16,
+function normaliseHex(hex: string) {
+  const value = hex.replace("#", "")
+  return value.length === 3
+    ? value
+        .split("")
+        .map((character) => character + character)
+        .join("")
+    : value
+}
+
+function darken(hex: string, amount = 0.28) {
+  const value = normaliseHex(hex)
+  const number = Number.parseInt(value, 16)
+  const red = Math.max(0, Math.round(((number >> 16) & 0xff) * (1 - amount)))
+  const green = Math.max(0, Math.round(((number >> 8) & 0xff) * (1 - amount)))
+  const blue = Math.max(0, Math.round((number & 0xff) * (1 - amount)))
+
+  return `#${((1 << 24) + (red << 16) + (green << 8) + blue)
+    .toString(16)
+    .slice(1)}`
+}
+
+function lighten(hex: string, amount = 0.16) {
+  const value = normaliseHex(hex)
+  const number = Number.parseInt(value, 16)
+  const red = Math.min(
+    255,
+    Math.round(((number >> 16) & 0xff) + (255 - ((number >> 16) & 0xff)) * amount),
   )
-  let r = (num >> 16) & 0xff
-  let g = (num >> 8) & 0xff
-  let b = num & 0xff
-  r = Math.max(0, Math.round(r * (1 - amount)))
-  g = Math.max(0, Math.round(g * (1 - amount)))
-  b = Math.max(0, Math.round(b * (1 - amount)))
-  return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`
+  const green = Math.min(
+    255,
+    Math.round(((number >> 8) & 0xff) + (255 - ((number >> 8) & 0xff)) * amount),
+  )
+  const blue = Math.min(
+    255,
+    Math.round((number & 0xff) + (255 - (number & 0xff)) * amount),
+  )
+
+  return `#${((1 << 24) + (red << 16) + (green << 8) + blue)
+    .toString(16)
+    .slice(1)}`
 }
 
-function HeldItem({ item, accent }: { item: RobotItem; accent: string }) {
+function ScrewEye({
+  x,
+  y,
+  metalColor,
+  crossColor,
+  showCross,
+}: {
+  x: number
+  y: number
+  metalColor: string
+  crossColor: string
+  showCross: boolean
+}) {
+  return (
+    <g>
+      <circle
+        cx={x}
+        cy={y}
+        r={24}
+        fill={metalColor}
+        stroke="#173744"
+        strokeWidth={1.15}
+      />
+      {showCross && (
+        <g
+          stroke={crossColor}
+          strokeWidth={5.5}
+          strokeLinecap="square"
+        >
+          <line x1={x - 15} y1={y} x2={x + 15} y2={y} />
+          <line x1={x} y1={y - 15} x2={x} y2={y + 15} />
+        </g>
+      )}
+    </g>
+  )
+}
+
+function HeldItem({ item, color }: { item: RobotItem; color: string }) {
   if (item === "none") return null
-  switch (item) {
-    case "wrench":
-      return (
-        <g transform="rotate(35)">
-          <rect x={-4} y={-2} width={8} height={34} rx={4} fill="#9aa0a6" />
-          <path
-            d="M -9 -14 a 10 10 0 1 0 18 0 l -4 6 h -10 l -4 -6 z"
-            fill="#b8bdc2"
-            stroke="#7d8288"
-            strokeWidth={1.5}
-          />
-        </g>
-      )
-    case "gear":
-      return (
-        <g>
-          {Array.from({ length: 8 }).map((_, i) => (
-            <rect
-              key={i}
-              x={-3}
-              y={-20}
-              width={6}
-              height={9}
-              rx={1.5}
-              fill="#9aa0a6"
-              transform={`rotate(${i * 45})`}
-            />
-          ))}
-          <circle r={13} fill="#b8bdc2" stroke="#7d8288" strokeWidth={1.5} />
-          <circle r={5} fill="#6d7278" />
-        </g>
-      )
-    case "flower":
-      return (
-        <g>
-          <rect x={-1.5} y={0} width={3} height={26} rx={1.5} fill="#5b8c5b" />
-          {Array.from({ length: 6 }).map((_, i) => (
-            <ellipse
-              key={i}
-              cx={0}
-              cy={-11}
-              rx={5}
-              ry={9}
-              fill={accent}
-              transform={`rotate(${i * 60})`}
-            />
-          ))}
-          <circle r={5} fill="#ffd34d" />
-        </g>
-      )
-    case "heart":
-      return (
+
+  if (item === "wrench") {
+    return (
+      <g transform="translate(0 -26) rotate(22)">
         <path
-          d="M0 8 C -12 -6 -20 4 0 18 C 20 4 12 -6 0 8 Z"
-          transform="translate(0 -6) scale(0.9)"
-          fill={accent}
-          stroke={darken(accent, 0.2)}
-          strokeWidth={1.5}
+          d="M-5 8 L-5 -13 L-11 -21 L-7 -28 L0 -23 L7 -28 L11 -21 L5 -13 L5 8 Z"
+          fill={color}
+          stroke="#173744"
+          strokeWidth={1.2}
+          strokeLinejoin="round"
         />
-      )
-    default:
-      return null
+        <circle cx={0} cy={5} r={2.3} fill="#173744" />
+      </g>
+    )
   }
+
+  if (item === "gear") {
+    return (
+      <g transform="translate(0 -25)">
+        {Array.from({ length: 8 }, (_, index) => (
+          <rect
+            key={index}
+            x={-2.5}
+            y={-16}
+            width={5}
+            height={8}
+            fill={color}
+            transform={`rotate(${index * 45})`}
+          />
+        ))}
+        <circle r={12} fill={color} stroke="#173744" strokeWidth={1.2} />
+        <circle r={4} fill="#173744" />
+      </g>
+    )
+  }
+
+  if (item === "flower") {
+    return (
+      <g transform="translate(0 -29)">
+        <path
+          d="M0 4 Q4 14 0 27"
+          fill="none"
+          stroke="#4d8757"
+          strokeWidth={2.5}
+          strokeLinecap="round"
+        />
+        {Array.from({ length: 6 }, (_, index) => (
+          <ellipse
+            key={index}
+            cx={0}
+            cy={-6}
+            rx={4.5}
+            ry={9}
+            fill={color}
+            stroke={darken(color, 0.24)}
+            strokeWidth={1}
+            transform={`rotate(${index * 60})`}
+          />
+        ))}
+        <circle r={4.5} fill="#e4ad32" stroke="#946c1c" strokeWidth={1} />
+      </g>
+    )
+  }
+
+  return (
+    <path
+      d="M0 -18 C-13 -31 -25 -13 0 7 C25 -13 13 -31 0 -18 Z"
+      fill={color}
+      stroke="#173744"
+      strokeWidth={1.2}
+      transform="scale(.72)"
+    />
+  )
 }
 
 function Arm({
   side,
-  angle,
-  bodyColor,
+  rotation,
+  metalColor,
   item,
-  accent,
+  itemColor,
 }: {
   side: "left" | "right"
-  angle: number
-  bodyColor: string
+  rotation: number
+  metalColor: string
   item: RobotItem
-  accent: string
+  itemColor: string
 }) {
-  const dark = darken(bodyColor, 0.14)
-  const pivotX = side === "left" ? 44 : 156
-  const pivotY = 138
+  const direction = side === "left" ? -1 : 1
+  const shoulderX = side === "left" ? 94 : 146
+  const endX = direction * 96
+  const endY = -62
+  const path = `M0 0 L${direction * 38} -12 L${direction * 68} -40 L${endX} ${endY}`
+
   return (
-    <g transform={`translate(${pivotX} ${pivotY}) rotate(${angle})`}>
-      {/* 腕 */}
-      <rect x={-9} y={-6} width={18} height={54} rx={9} fill={bodyColor} stroke={dark} strokeWidth={2} />
-      <rect x={-9} y={-6} width={18} height={10} rx={5} fill={dark} opacity={0.4} />
-      {/* 手（ナット風） */}
-      <g transform="translate(0 54)">
-        <circle r={12} fill="#c6cbd0" stroke="#8b9096" strokeWidth={2} />
-        <circle r={5} fill="#6d7278" />
-        {side === "right" && (
-          <g transform="translate(0 6)">
-            <HeldItem item={item} accent={accent} />
-          </g>
-        )}
+    <g transform={`translate(${shoulderX} 145) rotate(${rotation})`}>
+      {/* PowerPointの折れ線アームを、細い縁取り付きの金属板として再現 */}
+      <path
+        d={path}
+        fill="none"
+        stroke="#173744"
+        strokeWidth={11}
+        strokeLinecap="square"
+        strokeLinejoin="miter"
+      />
+      <path
+        d={path}
+        fill="none"
+        stroke={metalColor}
+        strokeWidth={9}
+        strokeLinecap="square"
+        strokeLinejoin="miter"
+      />
+
+      {/* 元図の先端にある、広がった三角形状の手 */}
+      <polygon
+        points={`${endX},${endY} ${endX + direction * 18},${endY - 24} ${endX + direction * 31},${endY + 1}`}
+        fill={metalColor}
+        stroke="#173744"
+        strokeWidth={1.1}
+        strokeLinejoin="miter"
+      />
+
+      {side === "right" && item !== "none" && (
+        <g transform={`translate(${endX + direction * 23} ${endY - 5})`}>
+          <HeldItem item={item} color={itemColor} />
+        </g>
+      )}
+    </g>
+  )
+}
+
+function ThreadedBody({
+  clipId,
+  metalColor,
+}: {
+  clipId: string
+  metalColor: string
+}) {
+  const threadColor = darken(metalColor, 0.34)
+
+  return (
+    <g>
+      <rect
+        x={94}
+        y={81}
+        width={52}
+        height={111}
+        fill={metalColor}
+        stroke="#173744"
+        strokeWidth={1.15}
+      />
+      <g clipPath={`url(#${clipId})`}>
+        {Array.from({ length: 12 }, (_, index) => (
+          <rect
+            key={index}
+            x={92}
+            y={87 + index * 9}
+            width={56}
+            height={4.6}
+            fill={threadColor}
+          />
+        ))}
       </g>
+      <line
+        x1={98}
+        y1={82}
+        x2={98}
+        y2={191}
+        stroke={lighten(metalColor, 0.42)}
+        strokeWidth={1.2}
+        opacity={0.75}
+      />
     </g>
   )
 }
 
 function Head({
-  config,
-  showFace,
+  metalColor,
+  crossColor,
+  showDetails,
 }: {
-  config: RobotConfig
-  showFace: boolean
+  metalColor: string
+  crossColor: string
+  showDetails: boolean
 }) {
-  const { base, accentColor } = config
-  const metal = "#c6cbd0"
-  const metalDark = "#8b9096"
+  return (
+    <g>
+      {/* 左右二つの角形部品を並べた頭部 */}
+      <rect
+        x={69}
+        y={36}
+        width={51}
+        height={45}
+        fill={metalColor}
+        stroke="#173744"
+        strokeWidth={1.05}
+      />
+      <rect
+        x={120}
+        y={36}
+        width={51}
+        height={45}
+        fill={metalColor}
+        stroke="#173744"
+        strokeWidth={1.05}
+      />
+
+      <ScrewEye
+        x={91}
+        y={31}
+        metalColor={metalColor}
+        crossColor={crossColor}
+        showCross={showDetails}
+      />
+      <ScrewEye
+        x={149}
+        y={31}
+        metalColor={metalColor}
+        crossColor={crossColor}
+        showCross={showDetails}
+      />
+    </g>
+  )
+}
+
+function Legs({
+  base,
+  metalColor,
+}: {
+  base: RobotConfig["base"]
+  metalColor: string
+}) {
+  const hipY = base === "natty" ? 218 : 202
+  const leftPath = `M104 ${hipY} L80 250 L51 294`
+  const rightPath = `M136 ${hipY} L160 250 L189 294`
 
   return (
-   <g>
-      {/* アンテナ（頭のボルトを少し細かく） */}
-      <rect x={94} y={20} width={12} height={10} rx={2} fill={metalDark} />
-      <circle cx={100} cy={20} r={4} fill={metal} stroke={metalDark} strokeWidth={2} />
-
-      {base === "volta" ? (
-        // ボルタ：六角ボルトの頭
-        <polygon
-          points="100,44 143,68 143,116 100,140 57,116 57,68"
-          fill={metal}
-          stroke={metalDark}
-          strokeWidth={3}
-          strokeLinejoin="round"
-        />
-      ) : (
-        // ナッティ：皿ねじの丸い頭
-        <>
-          <circle cx={100} cy={92} r={46} fill={metal} stroke={metalDark} strokeWidth={3} />
-          {/* ナッティ特有の十字の溝（画像より） */}
-          <line x1={70} y1={62} x2={130} y2={122} stroke={metalDark} strokeWidth={6} strokeLinecap="round" />
-          <line x1={130} y1={62} x2={70} y2={122} stroke={metalDark} strokeWidth={6} strokeLinecap="round" />
-        </>
-      )}
-
-      {showFace && (
-        <g>
-          {/* ほっぺ（画像に合わせて少し位置を調整） */}
-          <circle cx={75} cy={100} r={6} fill={accentColor} opacity={0.4} />
-          <circle cx={125} cy={100} r={6} fill={accentColor} opacity={0.4} />
-          
-          {/* 目（皿ネジの十字溝を表現するため、中心に小さな点を追加） */}
-          <circle cx={84} cy={90} r={8} fill="#3a3f45" />
-          <circle cx={116} cy={90} r={8} fill="#3a3f45" />
-          <line x1={80} y1={90} x2={88} y2={90} stroke="#555" strokeWidth={2} />
-          <line x1={84} y1={86} x2={84} y2={94} stroke="#555" strokeWidth={2} />
-          <line x1={112} y1={90} x2={120} y2={90} stroke="#555" strokeWidth={2} />
-          <line x1={116} y1={86} x2={116} y2={94} stroke="#555" strokeWidth={2} />
-
-          {/* 口（ワイヤーを曲げたようなライン） */}
-          <path d="M90 110 Q100 120 110 110" fill="none" stroke="#3a3f45" strokeWidth={4} strokeLinecap="round" />
+    <g>
+      {[leftPath, rightPath].map((path, index) => (
+        <g key={path}>
+          <path
+            d={path}
+            fill="none"
+            stroke="#173744"
+            strokeWidth={10}
+            strokeLinecap="square"
+            strokeLinejoin="miter"
+          />
+          <path
+            d={path}
+            fill="none"
+            stroke={metalColor}
+            strokeWidth={8}
+            strokeLinecap="square"
+            strokeLinejoin="miter"
+          />
+          {index === 0 ? (
+            <polygon
+              points="44,289 55,295 50,305 39,299"
+              fill={metalColor}
+              stroke="#173744"
+              strokeWidth={1.1}
+            />
+          ) : (
+            <polygon
+              points="196,289 185,295 190,305 201,299"
+              fill={metalColor}
+              stroke="#173744"
+              strokeWidth={1.1}
+            />
+          )}
         </g>
-      )}
+      ))}
     </g>
+  )
+}
+
+function LowerBody({
+  base,
+  metalColor,
+}: {
+  base: RobotConfig["base"]
+  metalColor: string
+}) {
+  if (base === "natty") {
+    return (
+      <polygon
+        points="92,186 148,186 171,218 69,218"
+        fill={metalColor}
+        stroke="#173744"
+        strokeWidth={1.15}
+        strokeLinejoin="miter"
+      />
+    )
+  }
+
+  return (
+    <polygon
+      points="94,189 103,202 137,202 146,189"
+      fill={metalColor}
+      stroke="#173744"
+      strokeWidth={1.15}
+      strokeLinejoin="miter"
+    />
   )
 }
 
@@ -197,11 +411,10 @@ export function RobotCharacter({
   config: RobotConfig
   className?: string
 }) {
-  const { bodyColor, accentColor, pose, item, view, size } = config
-  const angles = POSE_ANGLES[pose]
-  const dark = darken(bodyColor, 0.14)
-  const showFace = view !== "back"
-
+  const clipId = `thread-${useId().replaceAll(":", "")}`
+  const { bodyColor, accentColor, pose, item, view, size, base } = config
+  const rotations = POSE_ROTATIONS[pose]
+  const showDetails = view !== "back"
   const rotateY = view === "front" ? 0 : view === "side" ? -52 : 180
   const scale = 0.62 + ((size - 20) / 70) * 0.55
 
@@ -209,7 +422,7 @@ export function RobotCharacter({
     <div
       className={className}
       style={{ perspective: "900px" }}
-      aria-label="ロボットのプレビュー"
+      aria-label={`${config.name || (base === "volta" ? "ボルタ" : "ナッティ")}のプレビュー`}
       role="img"
     >
       <div
@@ -219,53 +432,40 @@ export function RobotCharacter({
           transition: "transform 500ms cubic-bezier(0.34, 1.4, 0.4, 1)",
         }}
       >
-        <svg viewBox="0 0 200 260" className="h-full w-full overflow-visible">
-          {/* 影 */}
-          <ellipse cx={100} cy={248} rx={54} ry={10} fill="#000" opacity={0.12} />
+        <svg viewBox="0 0 240 312" className="h-full w-full overflow-visible">
+          <title>{config.name || (base === "volta" ? "ボルタ" : "ナッティ")}</title>
+          <defs>
+            <clipPath id={clipId}>
+              <rect x={94} y={81} width={52} height={111} />
+            </clipPath>
+          </defs>
 
-          {/* 奥の腕（背面時は反転で自然に見える） */}
-          <Arm side="left" angle={angles.left} bodyColor={bodyColor} item="none" accent={accentColor} />
+          <ellipse cx={120} cy={305} rx={77} ry={6} fill="#000" opacity={0.1} />
 
-          {/* 脚 */}
-          <g>
-            <rect x={72} y={196} width={18} height={40} rx={9} fill={dark} />
-            <rect x={110} y={196} width={18} height={40} rx={9} fill={dark} />
-            <ellipse cx={81} cy={240} rx={16} ry={8} fill="#6d7278" />
-            <ellipse cx={119} cy={240} rx={16} ry={8} fill="#6d7278" />
-          </g>
+          {/* 腕は胴体の後ろ側に配置 */}
+          <Arm
+            side="left"
+            rotation={rotations.left}
+            metalColor={bodyColor}
+            item="none"
+            itemColor={accentColor}
+          />
+          <Arm
+            side="right"
+            rotation={rotations.right}
+            metalColor={bodyColor}
+            item={item}
+            itemColor={accentColor}
+          />
 
-          {/* 胴体 */}
-          <g>
-            <rect x={54} y={128} width={92} height={80} rx={22} fill={bodyColor} stroke={dark} strokeWidth={3} />
-            {/* リベット */}
-            {[
-              [66, 140],
-              [134, 140],
-              [66, 196],
-              [134, 196],
-            ].map(([cx, cy], i) => (
-              <circle key={i} cx={cx} cy={cy} r={3.5} fill={dark} />
-            ))}
-            {/* ネームプレート */}
-            <rect x={72} y={158} width={56} height={26} rx={7} fill="#f4efe6" stroke={dark} strokeWidth={2} />
-            <text
-              x={100}
-              y={176}
-              textAnchor="middle"
-              fontSize={showFace ? 12 : 0}
-              fontWeight={700}
-              fill={darken(bodyColor, 0.3)}
-              style={{ fontFamily: "var(--font-heading), sans-serif" }}
-            >
-              {config.name ? config.name.slice(0, 4) : "★"}
-            </text>
-          </g>
-
-          {/* 頭 */}
-          <Head config={config} showFace={showFace} />
-
-          {/* 手前の腕（持ち物つき） */}
-          <Arm side="right" angle={angles.right} bodyColor={bodyColor} item={item} accent={accentColor} />
+          <Legs base={base} metalColor={bodyColor} />
+          <ThreadedBody clipId={clipId} metalColor={bodyColor} />
+          <LowerBody base={base} metalColor={bodyColor} />
+          <Head
+            metalColor={bodyColor}
+            crossColor={accentColor}
+            showDetails={showDetails}
+          />
         </svg>
       </div>
     </div>
