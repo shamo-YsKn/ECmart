@@ -4,14 +4,26 @@ import { useId } from "react"
 import type { RobotConfig, RobotItem, RobotPose } from "@/lib/types"
 
 /**
- * PowerPointで作成されたボルタ／ナッティの形を基準にしたポーズ。
- * cheer が元図とほぼ同じ「両腕を斜め上へ広げた姿勢」です。
+ * PowerPointで作成されたボルタ／ナッティの形を基準にしつつ、
+ * 腕・脚を少し短くし、ボルタは男の子らしく、ナッティは女の子らしく見える
+ * 立ち方になるよう調整したポーズ定義です。
  */
-const POSE_ROTATIONS: Record<RobotPose, { left: number; right: number }> = {
-  stand: { left: -94, right: 94 },
-  wave: { left: -94, right: -15 },
-  cheer: { left: 0, right: 0 },
-  point: { left: -94, right: 33 },
+const POSE_ROTATIONS: Record<
+  RobotConfig["base"],
+  Record<RobotPose, { left: number; right: number }>
+> = {
+  volta: {
+    stand: { left: -108, right: 108 },
+    wave: { left: -114, right: 18 },
+    cheer: { left: -10, right: 10 },
+    point: { left: -116, right: 38 },
+  },
+  natty: {
+    stand: { left: -92, right: 84 },
+    wave: { left: -100, right: 2 },
+    cheer: { left: -2, right: 18 },
+    point: { left: -104, right: 28 },
+  },
 }
 
 function normaliseHex(hex: string) {
@@ -81,11 +93,7 @@ function ScrewEye({
         strokeWidth={1.15}
       />
       {showCross && (
-        <g
-          stroke={crossColor}
-          strokeWidth={5.5}
-          strokeLinecap="square"
-        >
+        <g stroke={crossColor} strokeWidth={5.5} strokeLinecap="square">
           <line x1={x - 15} y1={y} x2={x + 15} y2={y} />
           <line x1={x} y1={y - 15} x2={x} y2={y + 15} />
         </g>
@@ -99,7 +107,7 @@ function HeldItem({ item, color }: { item: RobotItem; color: string }) {
 
   if (item === "wrench") {
     return (
-      <g transform="translate(0 -26) rotate(22)">
+      <g transform="translate(0 -23) rotate(22)">
         <path
           d="M-5 8 L-5 -13 L-11 -21 L-7 -28 L0 -23 L7 -28 L11 -21 L5 -13 L5 8 Z"
           fill={color}
@@ -114,7 +122,7 @@ function HeldItem({ item, color }: { item: RobotItem; color: string }) {
 
   if (item === "gear") {
     return (
-      <g transform="translate(0 -25)">
+      <g transform="translate(0 -23)">
         {Array.from({ length: 8 }, (_, index) => (
           <rect
             key={index}
@@ -134,7 +142,7 @@ function HeldItem({ item, color }: { item: RobotItem; color: string }) {
 
   if (item === "flower") {
     return (
-      <g transform="translate(0 -29)">
+      <g transform="translate(0 -26)">
         <path
           d="M0 4 Q4 14 0 27"
           fill="none"
@@ -185,19 +193,18 @@ function Arm({
   itemColor: string
 }) {
   const direction = side === "left" ? -1 : 1
-  const shoulderX = side === "left" ? 94 : 146
-  const endX = direction * 96
-  const endY = -62
-  const path = `M0 0 L${direction * 38} -12 L${direction * 68} -40 L${endX} ${endY}`
+  const shoulderX = side === "left" ? 96 : 144
+  const endX = direction * 82
+  const endY = -54
+  const path = `M0 0 L${direction * 30} -10 L${direction * 56} -34 L${endX} ${endY}`
 
   return (
     <g transform={`translate(${shoulderX} 145) rotate(${rotation})`}>
-      {/* PowerPointの折れ線アームを、細い縁取り付きの金属板として再現 */}
       <path
         d={path}
         fill="none"
         stroke="#173744"
-        strokeWidth={11}
+        strokeWidth={10}
         strokeLinecap="square"
         strokeLinejoin="miter"
       />
@@ -205,14 +212,13 @@ function Arm({
         d={path}
         fill="none"
         stroke={metalColor}
-        strokeWidth={9}
+        strokeWidth={8}
         strokeLinecap="square"
         strokeLinejoin="miter"
       />
 
-      {/* 元図の先端にある、広がった三角形状の手 */}
       <polygon
-        points={`${endX},${endY} ${endX + direction * 18},${endY - 24} ${endX + direction * 31},${endY + 1}`}
+        points={`${endX},${endY} ${endX + direction * 16},${endY - 21} ${endX + direction * 28},${endY + 1}`}
         fill={metalColor}
         stroke="#173744"
         strokeWidth={1.1}
@@ -220,7 +226,7 @@ function Arm({
       />
 
       {side === "right" && item !== "none" && (
-        <g transform={`translate(${endX + direction * 23} ${endY - 5})`}>
+        <g transform={`translate(${endX + direction * 20} ${endY - 4})`}>
           <HeldItem item={item} color={itemColor} />
         </g>
       )}
@@ -240,31 +246,31 @@ function ThreadedBody({
   return (
     <g>
       <rect
-        x={94}
+        x={95}
         y={81}
-        width={52}
-        height={111}
+        width={50}
+        height={105}
         fill={metalColor}
         stroke="#173744"
         strokeWidth={1.15}
       />
       <g clipPath={`url(#${clipId})`}>
-        {Array.from({ length: 12 }, (_, index) => (
+        {Array.from({ length: 11 }, (_, index) => (
           <rect
             key={index}
-            x={92}
+            x={93}
             y={87 + index * 9}
-            width={56}
+            width={54}
             height={4.6}
             fill={threadColor}
           />
         ))}
       </g>
       <line
-        x1={98}
+        x1={99}
         y1={82}
-        x2={98}
-        y2={191}
+        x2={99}
+        y2={185}
         stroke={lighten(metalColor, 0.42)}
         strokeWidth={1.2}
         opacity={0.75}
@@ -284,7 +290,6 @@ function Head({
 }) {
   return (
     <g>
-      {/* 左右二つの角形部品を並べた頭部 */}
       <rect
         x={69}
         y={36}
@@ -329,19 +334,30 @@ function Legs({
   base: RobotConfig["base"]
   metalColor: string
 }) {
-  const hipY = base === "natty" ? 218 : 202
-  const leftPath = `M104 ${hipY} L80 250 L51 294`
-  const rightPath = `M136 ${hipY} L160 250 L189 294`
+  const legPaths =
+    base === "natty"
+      ? {
+          left: "M108 208 L92 238 L72 276",
+          right: "M132 208 L150 238 L169 276",
+          leftFoot: "66,272 76,277 72,287 62,281",
+          rightFoot: "175,272 165,277 169,287 179,281",
+        }
+      : {
+          left: "M104 196 L84 236 L64 274",
+          right: "M136 196 L156 236 L176 274",
+          leftFoot: "58,270 68,275 64,285 54,280",
+          rightFoot: "182,270 172,275 176,285 186,280",
+        }
 
   return (
     <g>
-      {[leftPath, rightPath].map((path, index) => (
+      {[legPaths.left, legPaths.right].map((path, index) => (
         <g key={path}>
           <path
             d={path}
             fill="none"
             stroke="#173744"
-            strokeWidth={10}
+            strokeWidth={9}
             strokeLinecap="square"
             strokeLinejoin="miter"
           />
@@ -349,25 +365,16 @@ function Legs({
             d={path}
             fill="none"
             stroke={metalColor}
-            strokeWidth={8}
+            strokeWidth={7}
             strokeLinecap="square"
             strokeLinejoin="miter"
           />
-          {index === 0 ? (
-            <polygon
-              points="44,289 55,295 50,305 39,299"
-              fill={metalColor}
-              stroke="#173744"
-              strokeWidth={1.1}
-            />
-          ) : (
-            <polygon
-              points="196,289 185,295 190,305 201,299"
-              fill={metalColor}
-              stroke="#173744"
-              strokeWidth={1.1}
-            />
-          )}
+          <polygon
+            points={index === 0 ? legPaths.leftFoot : legPaths.rightFoot}
+            fill={metalColor}
+            stroke="#173744"
+            strokeWidth={1.1}
+          />
         </g>
       ))}
     </g>
@@ -384,7 +391,7 @@ function LowerBody({
   if (base === "natty") {
     return (
       <polygon
-        points="92,186 148,186 171,218 69,218"
+        points="92,180 148,180 168,208 72,208"
         fill={metalColor}
         stroke="#173744"
         strokeWidth={1.15}
@@ -395,7 +402,7 @@ function LowerBody({
 
   return (
     <polygon
-      points="94,189 103,202 137,202 146,189"
+      points="96,183 104,196 136,196 144,183"
       fill={metalColor}
       stroke="#173744"
       strokeWidth={1.15}
@@ -413,36 +420,42 @@ export function RobotCharacter({
 }) {
   const clipId = `thread-${useId().replaceAll(":", "")}`
   const { bodyColor, accentColor, pose, item, view, size, base } = config
-  const rotations = POSE_ROTATIONS[pose]
+  const rotations = POSE_ROTATIONS[base][pose]
   const showDetails = view !== "back"
   const rotateY = view === "front" ? 0 : view === "side" ? -52 : 180
-  const scale = 0.62 + ((size - 20) / 70) * 0.55
+  const scale = 0.48 + ((size - 20) / 70) * 0.28
 
   return (
     <div
       className={className}
-      style={{ perspective: "900px" }}
+      style={{ perspective: "900px", overflow: "hidden" }}
       aria-label={`${config.name || (base === "volta" ? "ボルタ" : "ナッティ")}のプレビュー`}
       role="img"
     >
       <div
         style={{
+          height: "100%",
+          width: "100%",
           transformStyle: "preserve-3d",
-          transform: `rotateY(${rotateY}deg) scale(${scale})`,
+          transform: `translateY(8px) rotateY(${rotateY}deg) scale(${scale})`,
+          transformOrigin: "center center",
           transition: "transform 500ms cubic-bezier(0.34, 1.4, 0.4, 1)",
         }}
       >
-        <svg viewBox="0 0 240 312" className="h-full w-full overflow-visible">
+        <svg
+          viewBox="-12 0 264 308"
+          preserveAspectRatio="xMidYMid meet"
+          className="h-full w-full overflow-hidden"
+        >
           <title>{config.name || (base === "volta" ? "ボルタ" : "ナッティ")}</title>
           <defs>
             <clipPath id={clipId}>
-              <rect x={94} y={81} width={52} height={111} />
+              <rect x={95} y={81} width={50} height={105} />
             </clipPath>
           </defs>
 
-          <ellipse cx={120} cy={305} rx={77} ry={6} fill="#000" opacity={0.1} />
+          <ellipse cx={120} cy={294} rx={68} ry={6} fill="#000" opacity={0.1} />
 
-          {/* 腕は胴体の後ろ側に配置 */}
           <Arm
             side="left"
             rotation={rotations.left}
