@@ -6,7 +6,8 @@ import { formatYen, getShop } from "@/lib/data"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Minus, Plus, Check } from "lucide-react"
+import { Minus, Plus } from "lucide-react"
+import { FavoriteButton } from "@/components/favorite-button"
 
 export function QuantityStepper({
   quantity,
@@ -66,6 +67,10 @@ export function ProductCard({
             人気
           </Badge>
         )}
+        <FavoriteButton
+          productId={product.id}
+          className="absolute right-3 top-3"
+        />
       </div>
       <CardContent className="flex flex-1 flex-col gap-2 p-4">
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">

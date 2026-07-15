@@ -1,21 +1,6 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
-import { Zen_Maru_Gothic, Zen_Kaku_Gothic_New } from 'next/font/google'
 import './globals.css'
-
-const heading = Zen_Maru_Gothic({
-  subsets: ['latin'],
-  weight: ['500', '700', '900'],
-  variable: '--font-heading',
-  display: 'swap',
-})
-
-const body = Zen_Kaku_Gothic_New({
-  subsets: ['latin'],
-  weight: ['400', '500', '700'],
-  variable: '--font-body',
-  display: 'swap',
-})
 
 export const metadata: Metadata = {
   title: 'マチノワ｜町とつながる体験型マーケット',
@@ -35,7 +20,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="ja" className={`${heading.variable} ${body.variable} bg-background`}>
+    <html lang="ja" className="bg-background">
       <body className="font-sans antialiased">
         {children}
         {process.env.NODE_ENV === 'production' && <Analytics />}

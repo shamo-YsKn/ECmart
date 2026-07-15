@@ -19,6 +19,9 @@ import { cn } from "@/lib/utils"
 import { RotateCcw, Sparkles, Shuffle } from "lucide-react"
 
 const BODY_COLORS = [
+  { label: "アルミ", value: "#d1d1d1" },
+  { label: "しろがね", value: "#eceeef" },
+  { label: "くろがね", value: "#8d9194" },
   { label: "レンガ", value: "#e8842f" },
   { label: "しんちゅう", value: "#c9a24b" },
   { label: "あおがね", value: "#5b8c9c" },
@@ -28,6 +31,8 @@ const BODY_COLORS = [
 ]
 
 const ACCENT_COLORS = [
+  { label: "黒", value: "#111111" },
+  { label: "濃いグレー", value: "#777777" },
   { label: "さくら", value: "#e86a8f" },
   { label: "たまご", value: "#ffcf4d" },
   { label: "みずいろ", value: "#5fb6d1" },
@@ -36,8 +41,8 @@ const ACCENT_COLORS = [
 ]
 
 const BASES: { value: RobotBase; label: string; sub: string }[] = [
-  { value: "volta", label: "ボルタ", sub: "六角ボルトの頭" },
-  { value: "natty", label: "ナッティ", sub: "皿ねじ・ナットの頭" },
+  { value: "volta", label: "ボルタ", sub: "細いボルト脚のタイプ" },
+  { value: "natty", label: "ナッティ", sub: "大きなナット腰のタイプ" },
 ]
 
 const POSES: { value: RobotPose; label: string }[] = [
@@ -64,10 +69,10 @@ const VIEWS: { value: RobotView; label: string }[] = [
 const DEFAULT_CONFIG: RobotConfig = {
   base: "volta",
   size: 55,
-  bodyColor: "#e8842f",
-  accentColor: "#ffcf4d",
-  pose: "wave",
-  item: "wrench",
+  bodyColor: "#d1d1d1",
+  accentColor: "#111111",
+  pose: "cheer",
+  item: "none",
   view: "front",
   name: "ボルタ",
 }
@@ -172,6 +177,9 @@ export function RobotWorkshop() {
                 className="h-full w-full transition-all"
                 key="preview"
               />
+            </div>
+            <div className="mx-auto -mt-2 w-fit rounded-full border bg-background/90 px-4 py-1 font-display text-sm font-bold shadow-sm">
+              {config.name || (config.base === "volta" ? "ボルタ" : "ナッティ")}
             </div>
           </div>
           <div className="mt-4 flex items-center justify-center gap-2">
