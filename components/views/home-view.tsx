@@ -59,10 +59,10 @@ export function HomeView({
                 config={{
                   base: "volta",
                   size: 70,
-                  bodyColor: "#e8842f",
-                  accentColor: "#ffcf4d",
-                  pose: "wave",
-                  item: "flower",
+                  bodyColor: "#d1d1d1",
+                  accentColor: "#111111",
+                  pose: "cheer",
+                  item: "none",
                   view: "front",
                   name: "ボルタ",
                 }}

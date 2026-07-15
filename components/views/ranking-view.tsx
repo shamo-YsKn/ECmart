@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { QuantityStepper } from "@/components/product-card"
+import { FavoriteButton } from "@/components/favorite-button"
 import {
   CalendarDays,
   Info,
@@ -114,7 +115,8 @@ function ProductRankingCard({
           </div>
         </div>
 
-        <div className="shrink-0">
+        <div className="flex shrink-0 items-center gap-2">
+          <FavoriteButton productId={product.id} />
           {quantity > 0 ? (
             <QuantityStepper
               quantity={quantity}
