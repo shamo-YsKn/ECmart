@@ -98,6 +98,7 @@ export const products: Product[] = [
     emoji: "🍞",
     tags: ["天然酵母", "国産小麦"],
     soldCount: 1280,
+    last30DaysSold: 143,
   },
   {
     id: "p-croissant",
@@ -108,6 +109,7 @@ export const products: Product[] = [
     emoji: "🥐",
     tags: ["人気", "冷凍発送"],
     soldCount: 960,
+    last30DaysSold: 112,
   },
   {
     id: "p-jam",
@@ -118,6 +120,7 @@ export const products: Product[] = [
     emoji: "🍓",
     tags: ["季節限定"],
     soldCount: 540,
+    last30DaysSold: 58,
   },
   // てつ工房ボルタ
   {
@@ -129,6 +132,7 @@ export const products: Product[] = [
     emoji: "🔩",
     tags: ["一点物", "手作り"],
     soldCount: 320,
+    last30DaysSold: 38,
   },
   {
     id: "p-natty",
@@ -139,6 +143,7 @@ export const products: Product[] = [
     emoji: "⚙️",
     tags: ["一点物", "手作り"],
     soldCount: 410,
+    last30DaysSold: 51,
   },
   {
     id: "p-keyring",
@@ -149,6 +154,7 @@ export const products: Product[] = [
     emoji: "🗝️",
     tags: ["ギフト"],
     soldCount: 780,
+    last30DaysSold: 96,
   },
   // 花と緑のはなみち
   {
@@ -160,6 +166,7 @@ export const products: Product[] = [
     emoji: "💐",
     tags: ["ギフト", "当日発送"],
     soldCount: 650,
+    last30DaysSold: 72,
   },
   {
     id: "p-plant",
@@ -170,6 +177,7 @@ export const products: Product[] = [
     emoji: "🪴",
     tags: ["初心者向け"],
     soldCount: 890,
+    last30DaysSold: 108,
   },
   {
     id: "p-dryflower",
@@ -180,6 +188,7 @@ export const products: Product[] = [
     emoji: "🌾",
     tags: ["長持ち"],
     soldCount: 470,
+    last30DaysSold: 49,
   },
   // ひより窯
   {
@@ -191,6 +200,7 @@ export const products: Product[] = [
     emoji: "☕",
     tags: ["電子レンジ可"],
     soldCount: 560,
+    last30DaysSold: 66,
   },
   {
     id: "p-plate",
@@ -201,6 +211,7 @@ export const products: Product[] = [
     emoji: "🍽️",
     tags: ["ペア"],
     soldCount: 380,
+    last30DaysSold: 44,
   },
   {
     id: "p-vase",
@@ -211,6 +222,7 @@ export const products: Product[] = [
     emoji: "🏺",
     tags: ["新作"],
     soldCount: 240,
+    last30DaysSold: 29,
   },
   // 喫茶ことり
   {
@@ -222,6 +234,7 @@ export const products: Product[] = [
     emoji: "☕",
     tags: ["人気", "自家焙煎"],
     soldCount: 1420,
+    last30DaysSold: 186,
   },
   {
     id: "p-cookie",
@@ -232,6 +245,7 @@ export const products: Product[] = [
     emoji: "🍪",
     tags: ["ギフト"],
     soldCount: 820,
+    last30DaysSold: 104,
   },
   {
     id: "p-beans",
@@ -242,6 +256,7 @@ export const products: Product[] = [
     emoji: "🫘",
     tags: ["季節限定"],
     soldCount: 610,
+    last30DaysSold: 73,
   },
   // tsumugi
   {
@@ -253,6 +268,7 @@ export const products: Product[] = [
     emoji: "👜",
     tags: ["人気", "手作り"],
     soldCount: 730,
+    last30DaysSold: 91,
   },
   {
     id: "p-spoon",
@@ -263,6 +279,7 @@ export const products: Product[] = [
     emoji: "🥄",
     tags: ["木工"],
     soldCount: 450,
+    last30DaysSold: 57,
   },
   {
     id: "p-towel",
@@ -273,6 +290,7 @@ export const products: Product[] = [
     emoji: "🧻",
     tags: ["日用品"],
     soldCount: 990,
+    last30DaysSold: 126,
   },
 ]
 

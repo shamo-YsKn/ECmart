@@ -23,6 +23,8 @@ export interface Product {
   emoji: string
   tags: string[]
   soldCount: number
+  /** 直近30日間の販売個数。現在はランキング表示用のサンプル値です。 */
+  last30DaysSold: number
 }
 
 export interface CartItem {
